@@ -1,7 +1,18 @@
 const steps = ["Scraping profile data...", "Normalizing skills...", "Calculating semantic match..."];
 const API_URL = "http://localhost:8000"; // Hardcoded for seamless backend integration later
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+
+  // 🔴 NEW: Check if we have recent data cached
+  const cache = await chrome.storage.local.get(['lastResult', 'lastScanned']);
+
+  // If we have data from the last 5 minutes, load it instantly!
+  if (cache.lastResult && (Date.now() - cache.lastScanned < 300000)) {
+    renderResults(cache.lastResult);
+  } else {
+    toggleState('state-idle');
+  }
+  
   const jobSelect = document.getElementById('job-req');
   const analyzeBtn = document.getElementById('analyze-btn');
 
@@ -36,7 +47,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  document.getElementById('reset-btn').addEventListener('click', () => toggleState('state-idle'));
+  document.getElementById('reset-btn').addEventListener('click', () => {
+  toggleState('state-idle');
+  
+  // Reset the export button back to default
+  const exportBtn = document.getElementById('export-btn');
+  exportBtn.innerText = "📤 Export to HR Dashboard";
+  exportBtn.classList.remove('btn-exported');
+});
 });
 
 async function runMatchEngine(text, role) {
@@ -104,9 +122,27 @@ function renderResults(data) {
   mapPills('strong-matches', data.strong_matches, 'pill-green');
   mapPills('missing-skills', data.missing_skills, 'pill-red');
   document.getElementById('ai-deduction').innerText = data.ai_deduction;
+
+  // 🔴 NEW: Save to local storage so it survives the popup closing
+  chrome.storage.local.set({ lastResult: data, lastScanned: Date.now() });
 }
 
 function toggleState(id) {
   document.querySelectorAll('.state').forEach(s => s.classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
 }
+
+document.getElementById('export-btn').addEventListener('click', (e) => {
+  const btn = e.target;
+  
+  // Change to success state
+  btn.innerText = "✅ Candidate Exported!";
+  btn.classList.add('btn-exported');
+  
+  // Optional: If you want it to revert back to normal after 3 seconds, keep this timeout.
+  // Otherwise, delete the setTimeout block so it stays green until they scan a new person.
+  setTimeout(() => {
+    btn.innerText = "📤 Export to HR Dashboard";
+    btn.classList.remove('btn-exported');
+  }, 3000);
+});

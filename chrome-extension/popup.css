@@ -95,3 +95,11 @@ select:focus { outline: 2px solid var(--brand-dark); border-color: transparent; 
   border: 1px solid rgba(59, 130, 246, 0.2);
   box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.02);
 }
+
+/* Export Success State */
+.btn-exported {
+  background: var(--emerald) !important;
+  color: white !important;
+  cursor: default !important;
+  pointer-events: none; /* Prevents double-clicking natively */
+}
