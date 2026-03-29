@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="app">
+    <div id="state-config" class="state hidden">
+      <h2>⚙️ Setup TalentAI</h2>
+      <p>Connect your sourcing engine.</p>
+      <input type="text" id="api-url" placeholder="Backend URL (e.g. http://localhost:8000)">
+      <input type="password" id="api-key" placeholder="API Key">
+      <button id="save-config" class="btn-primary">Connect & Save</button>
+    </div>
+
+    <div id="state-idle" class="state">
+      <div class="header">
+        <span class="logo-text">Talent<strong>AI</strong></span>
+        <button id="settings-btn" title="Settings">⚙️</button>
+      </div>
+      <div class="form-group">
+        <label>Target Job Requisition</label>
+        <select id="job-req">
+          <option value="">-- Select Role --</option>
+          <option value="Senior Data Scientist">Senior Data Scientist</option>
+          <option value="Frontend Engineer">Frontend Engineer</option>
+          <option value="Fullstack Developer">Fullstack Developer</option>
+        </select>
+      </div>
+      <button id="analyze-btn" class="btn-primary" disabled>Analyze Highlighted Text</button>
+      <div class="tip-box">💡 <strong>Tip:</strong> Highlight the candidate's 'About' or 'Experience' section before clicking.</div>
+    </div>
+
+    <div id="state-loading" class="state hidden">
+      <div class="loader-container">
+        <div class="spinner"></div>
+        <p id="loading-msg">Extracting experience...</p>
+      </div>
+    </div>
+
+    <div id="state-results" class="state hidden">
+      <div class="score-card">
+        <div class="progress-circle" id="score-circle">
+          <span id="score-text">0%</span>
+        </div>
+        <div class="badge">Potential: <span id="trajectory">High</span></div>
+      </div>
+
+      <div class="section">
+        <label>Verified Skills</label>
+        <div id="strong-matches" class="pill-group"></div>
+      </div>
+
+      <div class="section">
+        <label>Skill Gaps</label>
+        <div id="missing-skills" class="pill-group"></div>
+      </div>
+
+      <div class="ai-insight">
+        <strong>🧠 AI Context</strong>
+        <p id="ai-deduction"></p>
+      </div>
+      
+      <button id="reset-btn" class="btn-secondary">Analyze New Candidate</button>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
