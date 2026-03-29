@@ -56,19 +56,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   exportBtn.classList.remove('btn-exported');
 });
 });
+// Add this global variable at the very top of your file
+let precisionTimer;
 
 async function runMatchEngine(text, role) {
   toggleState('state-loading');
   
+  // Start the Precision Timer
+  let startTime = Date.now();
+  precisionTimer = setInterval(() => {
+    let elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+    document.getElementById('loading-timer').innerText = `${elapsed}s`;
+  }, 50);
+
   // Cycle the loading text
   let i = 0;
-  const timer = setInterval(() => {
+  const textTimer = setInterval(() => {
     i = (i + 1) % steps.length;
     document.getElementById('loading-msg').innerText = steps[i];
-  }, 1500);
+  }, 1200);
 
   try {
-    // Attempt to hit the real backend
     const res = await fetch(`${API_URL}/api/v1/match`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -78,13 +86,12 @@ async function runMatchEngine(text, role) {
     if (!res.ok) throw new Error("Backend not responding");
     
     const data = await res.json();
-    clearInterval(timer);
+    clearInterval(textTimer);
+    clearInterval(precisionTimer);
     renderResults(data);
 
   } catch (err) {
-    console.warn("Backend unavailable. Engaging Demo Mock Data mode.");
-    
-    // 🔴 DEMO FALLBACK: Shows perfect data if backend is down
+    // 🔴 DEMO FALLBACK
     const mockData = {
         score: 87,
         strong_matches: ["Python (5y)", "Machine Learning", "FastAPI", "React"],
@@ -92,41 +99,48 @@ async function runMatchEngine(text, role) {
         ai_deduction: "Score boosted by 12%. Deduced advanced Deep Learning proficiency from unlisted TensorFlow project experience found in Work History."
     };
     
-    // Simulate a 3.5 second processing time to make the demo look completely real
     setTimeout(() => {
-      clearInterval(timer);
+      clearInterval(textTimer);
+      clearInterval(precisionTimer);
       renderResults(mockData);
-    }, 3500);
+    }, 3200);
   }
 }
 
 function renderResults(data) {
   toggleState('state-results');
   
-  // Set the score text
-  document.getElementById('score-text').innerText = `${data.score}%`;
+  // 1. The Number Counter Animation
+  let currentScore = 0;
+  const targetScore = data.score;
+  const duration = 1000; // Count up over 1 second
+  const stepTime = Math.abs(Math.floor(duration / targetScore));
   
-  // Animate the conic-gradient circle
+  const scoreInterval = setInterval(() => {
+    currentScore += 1;
+    document.getElementById('score-text').innerText = `${currentScore}%`;
+    if (currentScore >= targetScore) {
+      clearInterval(scoreInterval);
+    }
+  }, stepTime);
+  
+  // 2. Animate the conic-gradient circle
   const circle = document.getElementById('score-circle');
   const color = data.score > 70 ? 'var(--emerald)' : 'var(--amber)';
   circle.style.setProperty('--circle-color', color);
+  setTimeout(() => circle.style.setProperty('--progress', `${data.score}%`), 100);
   
-  setTimeout(() => {
-      circle.style.setProperty('--progress', `${data.score}%`);
-  }, 100);
-  
+  // 3. Render Pills and Text
   const mapPills = (id, list, css) => {
     document.getElementById(id).innerHTML = list.map(s => `<span class="pill ${css}">${s}</span>`).join('');
   };
-
   mapPills('strong-matches', data.strong_matches, 'pill-green');
   mapPills('missing-skills', data.missing_skills, 'pill-red');
   document.getElementById('ai-deduction').innerText = data.ai_deduction;
 
-  // 🔴 NEW: Save to local storage so it survives the popup closing
+  // Save to cache
   chrome.storage.local.set({ lastResult: data, lastScanned: Date.now() });
 }
-
 function toggleState(id) {
   document.querySelectorAll('.state').forEach(s => s.classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
@@ -146,3 +160,15 @@ document.getElementById('export-btn').addEventListener('click', (e) => {
     btn.classList.remove('btn-exported');
   }, 3000);
 });
+
+// Copy to Clipboard Logic
+  document.getElementById('copy-report-btn').addEventListener('click', (e) => {
+    const score = document.getElementById('score-text').innerText;
+    const insight = document.getElementById('ai-deduction').innerText;
+    const report = `TalentAI Quick Scan:\nMatch Score: ${score}\nAI Context: ${insight}`;
+    
+    navigator.clipboard.writeText(report).then(() => {
+      e.target.innerText = "✅";
+      setTimeout(() => e.target.innerText = "📋", 2000);
+    });
+  });

@@ -28,8 +28,11 @@
       <div class="loader-container">
         <div class="spinner"></div>
         <p id="loading-msg">Extracting experience...</p>
+        <p id="loading-timer" style="font-family: monospace; color: var(--primary); font-size: 18px; font-weight: bold; margin-top: 8px;">0.00s</p>
       </div>
     </div>
+
+    
 
     <div id="state-results" class="state hidden">
       <div class="score-card">
@@ -49,10 +52,11 @@
         <div id="missing-skills" class="pill-group"></div>
       </div>
 
-      <div class="ai-insight">
-        <strong>🧠 AI Context</strong>
-        <p id="ai-deduction"></p>
-      </div>
+     <div class="ai-insight" style="position: relative;">
+      <strong>🧠 AI Context</strong>
+      <button id="copy-report-btn" title="Copy to Clipboard" style="position: absolute; right: 10px; top: 10px; background: none; border: none; cursor: pointer; font-size: 16px;">📋</button>
+      <p id="ai-deduction"></p>
+    </div>
       
       <button id="reset-btn" class="btn-secondary">Scan New Candidate</button>
       <button id="export-btn" class="btn-primary" style="margin-top: 10px;">📤 Export to HR Dashboard</button>
